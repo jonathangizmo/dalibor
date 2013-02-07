@@ -1,4 +1,4 @@
 dalibor
 =======
 
-WebService
+RESTful Web Service for the device.
