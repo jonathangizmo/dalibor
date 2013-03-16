@@ -1,6 +1,7 @@
 <?php
 
-class PollController extends Zend_Rest_Controller {
+class UserController extends Zend_Rest_Controller
+{
 
     public function getAction() {
        return $this->getResponse()->setBody("GET<br/>");
