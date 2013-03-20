@@ -11,6 +11,8 @@ class PollController extends Zend_Rest_Controller {
     }
 
     public function indexAction() {
+        $user = new Application_Model_UserMapper();
+        $this->view->entries = $user->fetchAll();
         return $this->getResponse()->setBody("index<br/>");
     }
 

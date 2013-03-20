@@ -1,0 +1,15 @@
+<p><a href="<?php echo $this->url(
+    array(
+        'controller' => 'poll',
+        'action'     => 'index'
+    ),
+    'default',
+    true) ?>">Our Users</a></p>
+ 
+User Entries: <br />
+<dl>
+    <?php foreach ($this->entries as $entry): ?>
+    <dt><?php echo $this->escape($entry->id) ?></dt>
+    <dd><?php echo $this->escape($entry->password) ?></dd>
+    <?php endforeach ?>
+</dl>
