@@ -16,7 +16,13 @@ class UserController extends Zend_Rest_Controller
     }
 
     public function postAction() {
-        return $this->getResponse()->setBody("POST<br/>");
+        $incoming = file_get_contents("php://input");
+        $json = json_decode($incoming,true);
+        $userMapper = new Application_Model_UserMapper();
+        $user = new Application_Model_User();
+        $this->view->entries = $userMapper->find($json["username"], $user);;
+        if($json["password"] == $user->getPassword()) return $this->getResponse()->setBody("true");
+        return $this->getResponse()->setBody("false");
     }
 
     public function putAction() {
