@@ -3,7 +3,11 @@
 class PollController extends Zend_Rest_Controller {
 
     public function getAction() {
-       return $this->getResponse()->setBody("GET<br/>");
+        $response = $this->getResponse();
+        $device = $this->_getParam ('id');
+        $response->setHeader("move", "left");
+        $response->setHeader("device", $device);
+       return $response;
     }
 
     public function headAction() {

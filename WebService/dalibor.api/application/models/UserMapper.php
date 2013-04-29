@@ -29,14 +29,17 @@ class Application_Model_UserMapper
     {
         $data = array(
             'password'   => $user->getPassword(),
-            'id' => $user->getId()
+            'id' => $user->getId(),
+            'sessionkey'   => $user->getSessionkey(),
+            'sessiontime' => $user->getSessiontime()
         );
  
-        
+        if (null === ($id = $user->getId())) {
+            unset($data['id']);
             $this->getDbTable()->insert($data);
-        
-           // $this->getDbTable()->update($data, array('id = ?' => $id));
-        
+        } else {
+            $this->getDbTable()->update($data, array('id = ?' => $id));
+        }
     }
  
     public function find($id, Application_Model_User $user)
@@ -47,7 +50,9 @@ class Application_Model_UserMapper
         }
         $row = $result->current();
         $user->setId($row->id)
-                  ->setPassword($row->password);
+                ->setPassword($row->password)
+                ->setSessionkey($row->sessionkey)
+                ->setSessiontime($row->sessiontime);
     }
  
     public function fetchAll()
@@ -58,7 +63,9 @@ class Application_Model_UserMapper
             $entry = new Application_Model_User();
             echo $row->id;
             $entry->setId($row->id)
-                  ->setPassword($row->password);
+                  ->setPassword($row->password)
+                  ->setSessionkey($row->sessionkey)
+                  ->setSessiontime($row->sessiontime);
             $entries[] = $entry;
         }
         return $entries;

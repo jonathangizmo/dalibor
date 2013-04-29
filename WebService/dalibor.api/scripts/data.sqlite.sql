@@ -1,2 +1,1 @@
-INSERT INTO user (id, password) VALUES
-    ('user','password');
+INSERT INTO user (id, password) VALUES ('dalibor','dalibor123');

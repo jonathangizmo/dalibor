@@ -4,7 +4,6 @@ class UserController extends Zend_Rest_Controller
 {
 
     public function getAction() {
-       return $this->getResponse()->setBody("GET<br/>");
     }
 
     public function headAction() {
@@ -12,7 +11,6 @@ class UserController extends Zend_Rest_Controller
     }
 
     public function indexAction() {
-        return $this->getResponse()->setBody("index<br/>");
     }
 
     public function postAction() {
@@ -20,9 +18,14 @@ class UserController extends Zend_Rest_Controller
         $json = json_decode($incoming,true);
         $userMapper = new Application_Model_UserMapper();
         $user = new Application_Model_User();
-        $this->view->entries = $userMapper->find($json["username"], $user);;
-        if($json["password"] == $user->getPassword()) return $this->getResponse()->setBody("true");
-        return $this->getResponse()->setBody("false");
+        $this->view->entries = $userMapper->find($json["username"], $user);
+        $responseData["auth"]="false";
+        $responseData["sessionkey"]="0";
+        if($json["password"] == $user->getPassword()){
+            $responseData["auth"]="true";
+            $responseData["sessionkey"]="12345";
+        }
+        return $this->getResponse()->setBody(json_encode($responseData));
     }
 
     public function putAction() {
@@ -30,6 +33,10 @@ class UserController extends Zend_Rest_Controller
     }
 
     public function deleteAction() {
+        
+    }
+    
+    private function generateToken() {
         
     }
 

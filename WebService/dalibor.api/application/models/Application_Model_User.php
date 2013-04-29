@@ -2,6 +2,8 @@
 class Application_Model_User {
     protected $_password;
     protected $_id;
+    protected $_sessionkey;
+    protected $_sessiontime;
  
     public function __construct(array $options = null)
     {
@@ -62,6 +64,28 @@ class Application_Model_User {
     public function getId()
     {
         return $this->_id;
+    }
+    
+    public function setSessionkey($sessionkey)
+    {
+        $this->_sessionkey = $sessionkey;
+        return $this;
+    }
+ 
+    public function getSessionkey()
+    {
+        return $this->_sessionkey;
+    }
+    
+    public function setSessiontime($sessiontime)
+    {
+        $this->_sessiontime = $sessiontime;
+        return $this;
+    }
+ 
+    public function getSessiontime()
+    {
+        return $this->_sessiontime;
     }
 }
 
