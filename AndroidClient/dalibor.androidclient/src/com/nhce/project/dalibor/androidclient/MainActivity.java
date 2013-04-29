@@ -1,6 +1,8 @@
 package com.nhce.project.dalibor.androidclient;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -10,11 +12,15 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HTTP;
+import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.JsonReader;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -75,27 +81,32 @@ public class MainActivity extends Activity {
                      HttpPost post = new HttpPost(URL);
                      json.put("username", sUsername);
                      json.put("password", sPassword);
-                     
                      StringEntity se = new StringEntity( json.toString());  
                      se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
                      post.setEntity(se);
                      response = client.execute(post);
 
                      if(response!=null){
-                         InputStream in = response.getEntity().getContent();
-                         Log.i("response", in.toString());
-                         Toast.makeText(getApplicationContext(), "Recieved response", Toast.LENGTH_LONG).show();
+                         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+                         StringBuilder builder = new StringBuilder();
+                         for (String line = null; (line = reader.readLine()) != null;) {
+                             builder.append(line).append("\n");
+                         }
+                         JSONObject finalResult = new JSONObject(builder.toString());
+                         Log.i("response", finalResult.toString());
+                         if(finalResult.getString("auth").equalsIgnoreCase("true")){
+                        	 Intent navIntent = new Intent(getApplicationContext(), NavActivity.class);
+                        	 startActivity(navIntent);
+                         }
                      }
 
                  } catch(Exception e) {
                      e.printStackTrace();
                      Log.e("Error", "Cannot Estabilish Connection");
                  }
-
                  Looper.loop();
              }
          };
-
          t.start();
 	}
 
