@@ -9,5 +9,6 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
             $restRoute = new Zend_Rest_Route($frontController);
             $frontController->getRouter()->addRoute('rest', $restRoute);
         }
+        
 }
 

@@ -6,3 +6,10 @@ CREATE TABLE user (
 );
 
 CREATE INDEX "id" ON "user" ("id");
+
+CREATE TABLE direction (
+    id VARCHAR(64) NOT NULL PRIMARY KEY,
+    move VARCHAR(64) NOT NULL,
+    message VARCHAR(64),
+    movetime NUMERIC
+);
