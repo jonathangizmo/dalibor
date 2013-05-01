@@ -18,6 +18,7 @@ import org.json.JSONTokener;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.JsonReader;
@@ -30,7 +31,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
-
+	
 	private static final String USER_CONTROLLER = "/user/";
 	
     @Override
@@ -46,6 +47,11 @@ public class MainActivity extends Activity {
         Button btnTestConnection = (Button) findViewById(R.id.buttonTestConnection);
         Button btnLogin = (Button) findViewById(R.id.buttonLogin);
         
+        SharedPreferences settings = getSharedPreferences(Dalibor.PREFS_NAME, 0);
+        etHost.setText(settings.getString("host", ""));
+        etPort.setText(settings.getString("port", ""));
+        etUsername.setText(settings.getString("username", ""));
+        etPassword.setText(settings.getString("password", ""));
         btnTestConnection.setOnClickListener(new OnClickListener() {
 			
 			public void onClick(View v) {
@@ -61,6 +67,8 @@ public class MainActivity extends Activity {
 				String sUsername = etUsername.getText().toString();
 				String sPassword = etPassword.getText().toString();
 				connectToServer(sHost,sPort,sUsername,sPassword);
+				//Intent navIntent = new Intent(getApplicationContext(), NavActivity.class);
+           	 	//startActivity(navIntent);
 			}
 		});
     }
@@ -95,6 +103,14 @@ public class MainActivity extends Activity {
                          JSONObject finalResult = new JSONObject(builder.toString());
                          Log.i("response", finalResult.toString());
                          if(finalResult.getString("auth").equalsIgnoreCase("true")){
+                        	 SharedPreferences settings = getSharedPreferences(Dalibor.PREFS_NAME, 0);
+                             SharedPreferences.Editor editor = settings.edit();
+                             editor.putString("username", sUsername);
+                             editor.putString("password", sPassword);
+                             editor.putString("host", sHost);
+                             editor.putString("port", sPort);
+                             editor.putString("sessionkey", finalResult.getString("sessionkey"));
+                             editor.commit();
                         	 Intent navIntent = new Intent(getApplicationContext(), NavActivity.class);
                         	 startActivity(navIntent);
                          }
