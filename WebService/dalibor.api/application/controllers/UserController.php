@@ -23,7 +23,16 @@ class UserController extends Zend_Rest_Controller
         $responseData["sessionkey"]="0";
         if($json["password"] == $user->getPassword()){
             $responseData["auth"]="true";
-            $responseData["sessionkey"]="12345";
+            $responseData["sessionkey"]= $this->generateSessionKey();
+            $user->setSessionkey($responseData["sessionkey"]);
+            $user->setSessiontime(time());
+            $userMapper->save($user);
+        }
+        else
+        {
+            $user->setSessionkey("0");
+            $user->setSessiontime(time());
+            $userMapper->save($user);
         }
         return $this->getResponse()->setBody(json_encode($responseData));
     }
@@ -36,8 +45,8 @@ class UserController extends Zend_Rest_Controller
         
     }
     
-    private function generateToken() {
-        
+    private function generateSessionKey() {
+        return rand(10000,999999);
     }
 
 }

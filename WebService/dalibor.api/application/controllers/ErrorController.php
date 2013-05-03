@@ -28,6 +28,7 @@ class ErrorController extends Zend_Controller_Action
                 $this->view->message = 'Application error';
                 break;
         }
+        $this->view->exception = $errors->exception;
         
         // Log exception, if logger available
         if ($log = $this->getLog()) {

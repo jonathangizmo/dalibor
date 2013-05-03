@@ -62,6 +62,6 @@ public class DataHolder
 	}
 	
 	public static String getDirectionString() {
-		return String.valueOf(msPower*1000+msDirection*100+msTurnLeft*10+msTurnRight);
+		return String.valueOf(msPower)+String.valueOf(msDirection)+String.valueOf(msTurnLeft)+String.valueOf(msTurnRight);
 	}
 }
