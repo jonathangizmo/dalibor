@@ -17,8 +17,12 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.JsonReader;
@@ -43,8 +47,6 @@ public class MainActivity extends Activity {
         final EditText etPort = (EditText) findViewById(R.id.editTextPort);
         final EditText etUsername = (EditText) findViewById(R.id.editTextUsername);
         final EditText etPassword = (EditText) findViewById(R.id.editTextPassword);
-        
-        Button btnTestConnection = (Button) findViewById(R.id.buttonTestConnection);
         Button btnLogin = (Button) findViewById(R.id.buttonLogin);
         
         SharedPreferences settings = getSharedPreferences(Dalibor.PREFS_NAME, 0);
@@ -52,13 +54,6 @@ public class MainActivity extends Activity {
         etPort.setText(settings.getString("port", ""));
         etUsername.setText(settings.getString("username", ""));
         etPassword.setText(settings.getString("password", ""));
-        btnTestConnection.setOnClickListener(new OnClickListener() {
-			
-			public void onClick(View v) {
-				Toast.makeText(getApplicationContext(), "Feature not yet available", Toast.LENGTH_SHORT).show();
-			}
-		});
-        
         btnLogin.setOnClickListener(new OnClickListener() {
 			
 			public void onClick(View v) {
@@ -73,62 +68,86 @@ public class MainActivity extends Activity {
 		});
     }
 
-    protected void connectToServer(final String sHost, final String sPort, final String sUsername, final String sPassword) {
-    	 Thread t = new Thread() {
+    private void connectToServer(final String sHost, final String sPort, final String sUsername, final String sPassword) {
+    	final ProgressDialog progress = ProgressDialog.show(MainActivity.this, "Trying to connect", "Please wait..");
+    		Thread t = new Thread(){
+    			public void run()
+    			{
+				Looper.prepare();
+				HttpClient client = new DefaultHttpClient();
+                HttpConnectionParams.setConnectionTimeout(client.getParams(), 10000);
+                HttpResponse response;
+                JSONObject json = new JSONObject();
+                String URL ="";
+                if(!sPort.equals(""))
+               	 URL = sHost + ":" + sPort;
+                else
+               	 URL = String.valueOf(sHost);
+                URL+=USER_CONTROLLER;
 
-             public void run() {
-                 Looper.prepare();
-                 HttpClient client = new DefaultHttpClient();
-                 HttpConnectionParams.setConnectionTimeout(client.getParams(), 10000);
-                 HttpResponse response;
-                 JSONObject json = new JSONObject();
-                 String URL = sHost + ":" + sPort;
-                 URL+=USER_CONTROLLER;
+                try {
+                    HttpPost post = new HttpPost(URL);
+                    json.put("username", sUsername);
+                    json.put("password", sPassword);
+                    StringEntity se = new StringEntity( json.toString());  
+                    se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+                    post.setEntity(se);
+                    response = client.execute(post);
 
-                 try {
-                     HttpPost post = new HttpPost(URL);
-                     json.put("username", sUsername);
-                     json.put("password", sPassword);
-                     StringEntity se = new StringEntity( json.toString());  
-                     se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-                     post.setEntity(se);
-                     response = client.execute(post);
+                    if(response!=null){
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+                        StringBuilder builder = new StringBuilder();
+                        for (String line = null; (line = reader.readLine()) != null;) {
+                            builder.append(line).append("\n");
+                        }
+                        JSONObject finalResult = new JSONObject(builder.toString());
+                        Log.i("response", finalResult.toString());
+                        if(finalResult.getString("auth").equalsIgnoreCase("true")){
+	                       	SharedPreferences settings = getSharedPreferences(Dalibor.PREFS_NAME, 0);
+	                        SharedPreferences.Editor editor = settings.edit();
+	                        editor.putString("username", sUsername);
+	                        editor.putString("password", sPassword);
+	                        editor.putString("host", sHost);
+	                        editor.putString("port", sPort);
+	                        editor.putString("sessionkey", finalResult.getString("sessionkey"));
+	                        editor.commit();
+	                        progress.cancel();
+	                       	Intent navIntent = new Intent(getApplicationContext(), NavActivity.class);
+	                       	startActivity(navIntent);
+                        }
+                        else {
+                        	progress.cancel();
+                       	 	showErrorDialog("Invalid Username/Password");
+                        }
+                    }
 
-                     if(response!=null){
-                         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-                         StringBuilder builder = new StringBuilder();
-                         for (String line = null; (line = reader.readLine()) != null;) {
-                             builder.append(line).append("\n");
-                         }
-                         JSONObject finalResult = new JSONObject(builder.toString());
-                         Log.i("response", finalResult.toString());
-                         if(finalResult.getString("auth").equalsIgnoreCase("true")){
-                        	 SharedPreferences settings = getSharedPreferences(Dalibor.PREFS_NAME, 0);
-                             SharedPreferences.Editor editor = settings.edit();
-                             editor.putString("username", sUsername);
-                             editor.putString("password", sPassword);
-                             editor.putString("host", sHost);
-                             editor.putString("port", sPort);
-                             editor.putString("sessionkey", finalResult.getString("sessionkey"));
-                             editor.commit();
-                        	 Intent navIntent = new Intent(getApplicationContext(), NavActivity.class);
-                        	 startActivity(navIntent);
-                         }
-                     }
-
-                 } catch(Exception e) {
-                     e.printStackTrace();
-                     Log.e("Error", "Cannot Estabilish Connection");
-                 }
-                 Looper.loop();
-             }
-         };
-         t.start();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                    Log.e("Error", "Cannot Estabilish Connection");
+                    progress.cancel();
+                    showErrorDialog("Could not reach server");
+                }
+                Looper.loop();
+			}
+    	};
+    	t.start();
 	}
 
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_main, menu);
-        return true;
+        return false;
     }
+	
+	private void showErrorDialog(String sMessage) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(sMessage)
+		       .setTitle("Connecting to server");
+		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+	           public void onClick(DialogInterface dialog, int id) {
+	               dialog.cancel();
+	           }
+	       });
+		AlertDialog dialog = builder.create();
+		dialog.show();
+	}
 }

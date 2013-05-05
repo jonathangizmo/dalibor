@@ -27,10 +27,12 @@ public class PollManager
 	public static void startPoll() {
 		PollManager.isStarted = true;
 		PollManager.poll();
+		Log.d("poll", "starting poll");
 	}
 	
 	public static void stopPoll() {
 		PollManager.isStarted = false;
+		Log.d("poll","stopping poll");
 	}
 	
 	private static void poll() {
@@ -39,7 +41,9 @@ public class PollManager
 			private static final String POLL_CONTROLLER = "/poll/";
 			@Override
 			protected Void doInBackground(Void... params) {
+				Log.d("poll","polling");
 				SharedPreferences settings = Dalibor.getAppContext().getSharedPreferences(Dalibor.PREFS_NAME, 0);
+				SharedPreferences.Editor editor = settings.edit();
 				final String sUsername = settings.getString("username", "");
 				final String sHost = settings.getString("host", "");
 				final String sPort = settings.getString("port", "");
@@ -48,7 +52,12 @@ public class PollManager
 	            HttpConnectionParams.setConnectionTimeout(client.getParams(), 10000);
 	            HttpResponse response = null;
 	            JSONObject json = new JSONObject();
-	            String URL = sHost + ":" + sPort;
+	            
+	            String URL = "";
+	            if(!sPort.equals(""))
+               	 URL = sHost + ":" + sPort;
+                else
+               	 URL = String.valueOf(sHost);
 	            URL+=POLL_CONTROLLER;
 
 	            try {
@@ -60,7 +69,8 @@ public class PollManager
 	                StringEntity se = new StringEntity( json.toString());  
 	                se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
 	                post.setEntity(se);
-	                Log.i("poll direction",DataHolder.getDirectionString());
+	                Log.i("poll direction, session",DataHolder.getDirectionString()+" " +sSessionKey);
+	                Log.i("poll user", sUsername);
 	                response = client.execute(post);
 
 	                if(response!=null){
@@ -70,6 +80,22 @@ public class PollManager
 	                        builder.append(line).append("\n");
 	                    }
 	                    JSONObject finalResult = new JSONObject(builder.toString());
+	                    try {
+							String sLat = finalResult.getString("lat");
+							String sLon = finalResult.getString("lon");
+							if(Double.parseDouble(sLat) !=0 && Double.parseDouble(sLon) !=0)
+							{
+								Log.d("poll", "Setting location");
+								editor.putString("lat", finalResult.getString("lat"));
+							    editor.putString("lon", finalResult.getString("lon"));
+							    editor.putString("logtime", finalResult.getString("logtime"));
+							    editor.commit();
+							}
+						} catch (Exception e) {
+							Log.e("poll", "Location unavailable");
+							e.printStackTrace();
+						}
+	                    
 	                    Log.i("response", finalResult.toString());
 	                }
 

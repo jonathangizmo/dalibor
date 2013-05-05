@@ -11,8 +11,8 @@ public class DataHolder
 	public static String getMessage() {
 		return msMessage;
 	}
-	public static void setMessage(String msMessage) {
-		DataHolder.msMessage = msMessage;
+	public static void setMessage(String message) {
+		DataHolder.msMessage = message;
 	}
 	public static int getDirection() {
 		return msDirection;
@@ -25,7 +25,7 @@ public class DataHolder
 			DataHolder.msDirection = 1;
 		}
 	}
-	public static int getMsTurnLeft() {
+	public static int getTurnLeft() {
 		return msTurnLeft;
 	}
 	public static void setTurnLeft(boolean isLeft) {
@@ -37,7 +37,7 @@ public class DataHolder
 			DataHolder.msTurnLeft = 0;
 		}
 	}
-	public static int getMsTurnRight() {
+	public static int getTurnRight() {
 		return msTurnRight;
 	}
 	public static void setTurnRight(boolean isRight) {

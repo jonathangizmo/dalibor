@@ -1,12 +1,22 @@
 package com.nhce.project.dalibor.androidclient;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
-import android.hardware.SensorListener;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -17,60 +27,78 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class NavActivity extends Activity implements SensorListener {
+public class NavActivity extends Activity implements SensorEventListener {
 	private SensorManager mSensorManager;
 	private Sensor mSensor;
-	private float calVal[] = {0,0,0};
-	private float curValues[] ={0,0,0};
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_nav);
+        final SharedPreferences sSettings = getSharedPreferences(Dalibor.PREFS_NAME, 0);
         getActionBar().setDisplayHomeAsUpEnabled(true);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         Toast.makeText(getApplicationContext(), mSensor.getVendor(), Toast.LENGTH_LONG).show();
         PollManager.startPoll();
-		mSensorManager.registerListener(this, Sensor.TYPE_ACCELEROMETER, 2000);
+		mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_GAME);
 		
 		Button calibrateButton = (Button) findViewById(R.id.button1);
 		calibrateButton.setOnClickListener(new OnClickListener() {
 			
 			public void onClick(View v) {
-				calVal[0] = curValues[0];
-				calVal[1] = curValues[1];
-				calVal[2] = curValues[2];
+				Double latitude = Double.parseDouble(sSettings.getString("lat", "0.00"));
+				Double longitude = Double.parseDouble(sSettings.getString("lon", "0.00"));
+				int logtime = Integer.parseInt(sSettings.getString("logtime", "0"));
+				if(latitude==0 && longitude==0)
+				{
+					AlertDialog.Builder builder = new AlertDialog.Builder(NavActivity.this);
+					builder.setMessage("Location unavailable at the moment").setTitle("Device Location");
+					builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				           public void onClick(DialogInterface dialog, int id) {
+				               dialog.cancel();
+				           }
+				       });
+					AlertDialog dialog = builder.create();
+					dialog.show();
+					return;
+				}
+				Log.d("Location time stamp", String.valueOf(logtime));
+				String uri = String.format(Locale.ENGLISH, "geo:%f,%f?q=%f,%f(Device was last seen here)", latitude, longitude,latitude,longitude);
+				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+				startActivity(intent);
 			}
 		});
 		
 		Button forwardButton = (Button) findViewById(R.id.forwardButton);
 		Button reverseButton = (Button) findViewById(R.id.backwardButton);
-		Button brakeButton = (Button) findViewById(R.id.brakeButton);
 		
 		forwardButton.setOnTouchListener(new OnTouchListener() {
 			public boolean onTouch(View v, MotionEvent event) {
-				DataHolder.setDirection(true);
-				DataHolder.setPower(true);
+				if(event.getAction() == MotionEvent.ACTION_DOWN) {
+					DataHolder.setDirection(true);
+					DataHolder.setPower(true);
+				}
+				else if(event.getAction() == MotionEvent.ACTION_UP) {
+					DataHolder.setPower(false);
+				}
 				return false;
 			}
 		});
 		
 		reverseButton.setOnTouchListener(new OnTouchListener() {
 			public boolean onTouch(View v, MotionEvent event) {
-				DataHolder.setDirection(false);
-				DataHolder.setPower(true);
+				if(event.getAction() == MotionEvent.ACTION_DOWN) {
+					DataHolder.setDirection(false);
+					DataHolder.setPower(true);
+				}
+				else if(event.getAction() == MotionEvent.ACTION_UP) {
+					DataHolder.setDirection(true);
+					DataHolder.setPower(false);
+				}
 				return false;
 			}
 		});
-		
-		brakeButton.setOnTouchListener(new OnTouchListener() {
-			public boolean onTouch(View v, MotionEvent event) {
-				DataHolder.setPower(false);
-				DataHolder.setDirection(true);
-				return false;
-			}
-		});
-			
     }
 
     @Override
@@ -90,34 +118,6 @@ public class NavActivity extends Activity implements SensorListener {
         return super.onOptionsItemSelected(item);
     }
 
-	public void onAccuracyChanged(int arg0, int arg1) {
-
-	}
-
-	public void onSensorChanged(int sensor, float[] values) {
-		  curValues[0] = values[0];
-		  curValues[1] = values[1];
-		  curValues[2] = values[2];
-
-		  if((curValues[0]-calVal[0])<-20)
-		  {
-			  DataHolder.setTurnLeft(true);
-			  ((TextView) findViewById(R.id.Direction)).setText("Left");
-		  }
-		  else if((curValues[0]-calVal[0])>20)
-		  {
-			  DataHolder.setTurnRight(true);
-			  ((TextView) findViewById(R.id.Direction)).setText("Right");
-		  }
-		  else
-		  {
-			  DataHolder.setTurnLeft(false);
-			  DataHolder.setTurnRight(false);
-			  ((TextView) findViewById(R.id.Direction)).setText("Stright");
-		  }
-		  
-	}
-	
 	@Override
 	protected void onDestroy() {
 		PollManager.stopPoll();
@@ -152,5 +152,30 @@ public class NavActivity extends Activity implements SensorListener {
 	protected void onStart() {
 		PollManager.startPoll();
 		super.onStart();
+	}
+
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+	}
+
+	public void onSensorChanged(SensorEvent event) {
+
+		  if((event.values[0])>4.5)
+		  {
+			  DataHolder.setTurnLeft(true);
+			  ((TextView) findViewById(R.id.Direction)).setText("Left");
+		  }
+		  else if((event.values[0])<-4.5)
+		  {
+			  DataHolder.setTurnRight(true);
+			  ((TextView) findViewById(R.id.Direction)).setText("Right");
+		  }
+		  else
+		  {
+			  DataHolder.setTurnLeft(false);
+			  DataHolder.setTurnRight(false);
+			  ((TextView) findViewById(R.id.Direction)).setText("Stright");
+		  }
+		
 	}
 }
