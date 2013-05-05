@@ -13,3 +13,11 @@ CREATE TABLE direction (
     message VARCHAR(64),
     movetime NUMERIC
 );
+
+CREATE TABLE log (
+    id VARCHAR(64) NOT NULL PRIMARY KEY,
+    lat NUMERIC,
+    lon NUMERIC,
+    logtime NUMERIC
+);
+
