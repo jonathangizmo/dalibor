@@ -1,6 +1,5 @@
 package com.nhce.project.dalibor.androidclient;
 
-import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import android.app.Activity;
@@ -174,7 +173,7 @@ public class NavActivity extends Activity implements SensorEventListener {
 		  {
 			  DataHolder.setTurnLeft(false);
 			  DataHolder.setTurnRight(false);
-			  ((TextView) findViewById(R.id.Direction)).setText("Stright");
+			  ((TextView) findViewById(R.id.Direction)).setText("Straight");
 		  }
 		
 	}

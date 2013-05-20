@@ -1,7 +1,6 @@
 package com.nhce.project.dalibor.androidclient;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.apache.http.HttpResponse;
@@ -12,9 +11,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HTTP;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -22,17 +19,14 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
-import android.util.JsonReader;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	

@@ -21,8 +21,8 @@ class PollController extends Zend_Rest_Controller {
         }
         $response->setHeader("message",$direction->getMessage());
         $response->setHeader("movetime", $direction->getMoveTime());
-        $lat = $_GET['lat'];
-        $lon = $_GET['lon'];
+        $lat = $_GET['lat']/100000;
+        $lon = $_GET['lon']/100000;
         $log->setLat($lat);
         $log->setLon($lon);
         $log->setId($device);

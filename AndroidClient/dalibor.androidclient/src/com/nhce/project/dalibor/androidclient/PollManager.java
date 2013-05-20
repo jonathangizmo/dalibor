@@ -13,11 +13,8 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
-import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Looper;
 import android.util.Log;
 
 public class PollManager 
